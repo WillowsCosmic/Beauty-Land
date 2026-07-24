@@ -1,100 +1,209 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { collection, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Pencil, Trash2, X, Check, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+
+type Service = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  publicId: string;
+};
 
 export default function ServicesPage() {
-  const [services, setServices] = useState([
-    { id: "1", name: "Haircut", price: "500" },
-    { id: "2", name: "Facial", price: "800" },
-  ]);
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Edit state
   const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editImage, setEditImage] = useState<File | null>(null);
+  const [editPreview, setEditPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleAdd = () => {
-    if (!name || !price) return;
-    if (editId) {
-      setServices(services.map((s) => (s.id === editId ? { id: editId, name, price } : s)));
-      setEditId(null);
-    } else {
-      setServices([...services, { id: Date.now().toString(), name, price }]);
-    }
-    setName("");
-    setPrice("");
-  };
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'services'), (snap) => {
+      setServices(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Service)));
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
 
-  const handleEdit = (s: { id: string; name: string; price: string }) => {
+  const startEdit = (s: Service) => {
     setEditId(s.id);
-    setName(s.name);
-    setPrice(s.price);
+    setEditName(s.name);
+    setEditImage(null);
+    setEditPreview(null);
   };
 
-  const handleDelete = (id: string) => {
-    setServices(services.filter((s) => s.id !== id));
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditImage(null);
+    setEditPreview(null);
   };
+
+  const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditImage(file);
+    setEditPreview(URL.createObjectURL(file));
+  };
+
+  const saveEdit = async (s: Service) => {
+    if (!editName.trim()) return;
+    setSaving(true);
+
+    let imageUrl = s.imageUrl;
+    let publicId = s.publicId;
+
+    if (editImage) {
+      // Delete old image from Cloudinary
+      await fetch('/api/delete-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: s.publicId }),
+      });
+
+      // Upload new image
+      const formData = new FormData();
+      formData.append('file', editImage);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      imageUrl = data.url;
+      publicId = data.publicId;
+    }
+
+    await updateDoc(doc(db, 'services', s.id), {
+      name: editName.trim(),
+      imageUrl,
+      publicId,
+    });
+
+    setSaving(false);
+    setEditId(null);
+    setEditImage(null);
+    setEditPreview(null);
+  };
+
+  const handleDelete = async (s: Service) => {
+    if (!confirm(`Delete "${s.name}"?`)) return;
+    setDeletingId(s.id);
+    // Remove from Cloudinary
+    await fetch('/api/delete-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ publicId: s.publicId }),
+    });
+    await deleteDoc(doc(db, 'services', s.id));
+    setDeletingId(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-48 text-[#C9A96E]">
+        <Loader2 className="animate-spin" size={28} />
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full max-w-2xl">
-      <h2 className="text-2xl font-bold text-[#4a0010] mb-6 font-cinzel">Services</h2>
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-[#4a0010] font-cinzel">Services</h2>
+        <Link
+          href="/admin/dashboard/services/add"
+          className="bg-[#C0001A] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#4a0010] transition-colors"
+        >
+          + Add Service
+        </Link>
+      </div>
 
-      {/* Add / Edit Form */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Service name"
-          className="flex-1 border border-[#C9A96E]/50 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C0001A]/30"
-        />
-        <div className="flex gap-3">
-          <input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="Price (₹)"
-            className="flex-1 sm:w-32 border border-[#C9A96E]/50 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C0001A]/30"
-          />
-          <button
-            onClick={handleAdd}
-            className="flex items-center gap-2 bg-[#C0001A] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#4a0010] transition-colors whitespace-nowrap"
-          >
-            <Plus size={16} />
-            {editId ? "Update" : "Add"}
-          </button>
+      {services.length === 0 ? (
+        <p className="text-sm text-[#C9A96E] text-center py-16">No services yet. Add one!</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {services.map((s) => (
+            <div
+              key={s.id}
+              className="relative group bg-white border border-[#C9A96E]/30 rounded-xl overflow-hidden shadow-sm"
+            >
+              {/* Image */}
+              <div className="relative aspect-square w-full">
+                <Image
+                  src={s.imageUrl}
+                  alt={s.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                />
+                {/* Action buttons — always visible */}
+                <div className="absolute top-2 right-2 flex gap-1.5">
+                  <button
+                    onClick={() => startEdit(s)}
+                    className="bg-white/90 text-[#4a0010] rounded-full p-1.5 hover:bg-white shadow transition"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(s)}
+                    disabled={deletingId === s.id}
+                    className="bg-white/90 text-[#C0001A] rounded-full p-1.5 hover:bg-white shadow transition disabled:opacity-50"
+                  >
+                    {deletingId === s.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Name / Edit */}
+              <div className="px-3 py-2">
+                {editId === s.id ? (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      autoFocus
+                      placeholder="Service name"
+                      className="text-xs border border-[#C9A96E]/60 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#C0001A]/40"
+                    />
+                    <label className="text-xs text-[#C9A96E] cursor-pointer hover:text-[#4a0010] transition-colors">
+                      {editPreview ? '✓ New image selected' : '📷 Replace image'}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
+                    </label>
+                    {editPreview && (
+                      <div className="relative w-full aspect-square rounded overflow-hidden border border-[#C9A96E]/40">
+                        <img src={editPreview} alt="preview" className="object-cover w-full h-full" />
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => saveEdit(s)}
+                        disabled={saving}
+                        className="flex-1 flex items-center justify-center gap-1 bg-[#C0001A] text-white text-xs py-1 rounded hover:bg-[#4a0010] transition disabled:opacity-50"
+                      >
+                        {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="flex-1 flex items-center justify-center gap-1 bg-gray-100 text-gray-500 text-xs py-1 rounded hover:bg-gray-200 transition"
+                      >
+                        <X size={12} /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm font-semibold text-[#4a0010] truncate">{s.name}</p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-
-      {/* Services List */}
-      <div className="space-y-3">
-        {services.map((s) => (
-          <div
-            key={s.id}
-            className="flex items-center justify-between bg-white border border-[#C9A96E]/30 rounded-xl px-5 py-3 shadow-sm"
-          >
-            <div>
-              <p className="font-semibold text-[#4a0010]">{s.name}</p>
-              <p className="text-sm text-[#C9A96E]">₹{s.price}</p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleEdit(s)}
-                className="text-[#C9A96E] hover:text-[#4a0010] transition-colors"
-              >
-                <Pencil size={17} />
-              </button>
-              <button
-                onClick={() => handleDelete(s.id)}
-                className="text-[#C9A96E] hover:text-[#C0001A] transition-colors"
-              >
-                <Trash2 size={17} />
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {services.length === 0 && (
-          <p className="text-sm text-[#C9A96E] text-center py-8">No services yet. Add one above!</p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

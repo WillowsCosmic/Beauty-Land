@@ -1,7 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from "../components/AppSidebar";
 import Link from "next/link";
-import { LogOut, Bell } from "lucide-react";
+import { LogOut } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const today = new Date().toLocaleDateString("en-IN", {
@@ -13,6 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
+      <Toaster richColors position="top-right" />
       <AppSidebar />
       <div className="flex-1 flex flex-col min-h-screen bg-[#f8f8f8]">
         <header className="flex items-center gap-4 px-6 py-3 border-b border-[#7a0020]/20 bg-white shadow-sm">

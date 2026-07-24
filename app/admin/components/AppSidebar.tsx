@@ -32,7 +32,7 @@ const navItems = [
     href: "/admin/dashboard/gallery",
     children: [
       { label: "All Photos", href: "/admin/dashboard/gallery" },
-      { label: "Add Photo", href: "/admin/dashboard/gallery/add" },
+      
     ],
   },
 ];
