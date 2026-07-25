@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { collection, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Pencil, Trash2, X, Check, Loader2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -91,9 +92,17 @@ export default function ServicesPage() {
   };
 
   const handleDelete = async (s: Service) => {
-    if (!confirm(`Delete "${s.name}"?`)) return;
+    const result = await Swal.fire({
+      title: `Delete "${s.name}"?`,
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#C0001A',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+    });
+    if (!result.isConfirmed) return;
     setDeletingId(s.id);
-    // Remove from Cloudinary
     await fetch('/api/delete-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

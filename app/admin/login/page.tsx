@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
@@ -11,6 +11,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -58,8 +59,30 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
+      // Step 1: Check against allowed admin emails
+      const allowedEmails = process.env.NEXT_PUBLIC_FIREBASE_ADMIN_EMAILS?.split(",") ?? [];
+      if (!allowedEmails.includes(email.trim().toLowerCase())) {
+        setError("Invalid email or password. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Verify email + password
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/admin/dashboard");
+
+      // Step 2: Immediately sign out — password was just a gate
+      await signOut(auth);
+
+      // Step 3: Send magic link to their email
+      await sendSignInLinkToEmail(auth, email, {
+        url: `${window.location.origin}/admin/verify`,
+        handleCodeInApp: true,
+      });
+
+      // Step 4: Save email in localStorage so verify page can use it
+      window.localStorage.setItem("adminEmailForSignIn", email);
+
+      setMagicLinkSent(true);
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     } finally {
@@ -104,43 +127,59 @@ export default function AdminLogin() {
             <h2 className="text-2xl font-bold text-white mb-1">Welcome Back</h2>
             <p className="text-[#C9A96E] text-sm tracking-widest uppercase mb-8">Admin Panel</p>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1">
-                <label className="text-white/70 text-sm">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="admin@beautyland.com"
-                  className="bg-white/10 text-white placeholder-white/30 border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#C9A96E] hover:border-[#C9A96E]/60 hover:bg-white/15 transition-all duration-200"
-                />
+            {magicLinkSent ? (
+              <div className="flex flex-col items-center gap-4 text-center py-4">
+                <div className="w-14 h-14 rounded-full bg-[#C9A96E]/20 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-[#C9A96E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-white font-semibold text-lg">Check your email!</p>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  We sent a magic link to<br />
+                  <span className="text-[#C9A96E] font-medium">{email}</span><br />
+                  Click it to access the dashboard.
+                </p>
               </div>
+            ) : (
+              <form onSubmit={handleLogin} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1">
+                  <label className="text-white/70 text-sm">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="admin@beautyland.com"
+                    className="bg-white/10 text-white placeholder-white/30 border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#C9A96E] hover:border-[#C9A96E]/60 hover:bg-white/15 transition-all duration-200"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-white/70 text-sm">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder="••••••••"
-                  className="bg-white/10 text-white placeholder-white/30 border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#C9A96E] hover:border-[#C9A96E]/60 hover:bg-white/15 transition-all duration-200"
-                />
-              </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-white/70 text-sm">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="bg-white/10 text-white placeholder-white/30 border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#C9A96E] hover:border-[#C9A96E]/60 hover:bg-white/15 transition-all duration-200"
+                  />
+                </div>
 
-              {error && (
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              )}
+                {error && (
+                  <p className="text-red-400 text-sm text-center">{error}</p>
+                )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-2 bg-[#C0001A] hover:bg-[#e0001f] active:scale-95 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-red-900/50 disabled:opacity-50"
-              >
-                {loading ? "Logging in..." : "Login"}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-2 bg-[#C0001A] hover:bg-[#e0001f] active:scale-95 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-red-900/50 disabled:opacity-50"
+                >
+                  {loading ? "Sending magic link..." : "Login"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
 
