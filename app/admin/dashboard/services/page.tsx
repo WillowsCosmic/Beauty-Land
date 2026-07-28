@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Pencil, Trash2, X, Check, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, X, Check, Loader2, Sparkles } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,19 +13,20 @@ type Service = {
   name: string;
   imageUrl: string;
   publicId: string;
+  description?: string;
 };
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Edit state
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editImage, setEditImage] = useState<File | null>(null);
   const [editPreview, setEditPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'services'), (snap) => {
@@ -63,14 +64,12 @@ export default function ServicesPage() {
     let publicId = s.publicId;
 
     if (editImage) {
-      // Delete old image from Cloudinary
       await fetch('/api/delete-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ publicId: s.publicId }),
       });
 
-      // Upload new image
       const formData = new FormData();
       formData.append('file', editImage);
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
@@ -112,6 +111,25 @@ export default function ServicesPage() {
     setDeletingId(null);
   };
 
+  const handleRegenerate = async (s: Service) => {
+    setGeneratingId(s.id);
+    try {
+      const res = await fetch('/api/generate-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: s.name }),
+      });
+      const data = await res.json();
+      if (res.ok && data.description) {
+        await updateDoc(doc(db, 'services', s.id), { description: data.description });
+      }
+    } catch (err) {
+      console.error('Failed to regenerate description', err);
+    } finally {
+      setGeneratingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48 text-[#C9A96E]">
@@ -150,7 +168,6 @@ export default function ServicesPage() {
                   className="object-cover"
                   sizes="(max-width: 640px) 50vw, 25vw"
                 />
-                {/* Action buttons — always visible */}
                 <div className="absolute top-2 right-2 flex gap-1.5">
                   <button
                     onClick={() => startEdit(s)}
@@ -168,7 +185,7 @@ export default function ServicesPage() {
                 </div>
               </div>
 
-              {/* Name / Edit */}
+              {/* Name / Edit + Description */}
               <div className="px-3 py-2">
                 {editId === s.id ? (
                   <div className="flex flex-col gap-2">
@@ -206,7 +223,30 @@ export default function ServicesPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm font-semibold text-[#4a0010] truncate">{s.name}</p>
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-sm font-semibold text-[#4a0010] truncate">{s.name}</p>
+
+                    {/* Description preview */}
+                    {s.description ? (
+                      <p className="text-xs text-gray-400 line-clamp-2">{s.description}</p>
+                    ) : (
+                      <p className="text-xs text-[#C9A96E]/60 italic">No description yet</p>
+                    )}
+
+                    {/* Regenerate button */}
+                    <button
+                      onClick={() => handleRegenerate(s)}
+                      disabled={generatingId === s.id}
+                      className="mt-1 flex items-center gap-1 text-[10px] text-[#C9A96E] hover:text-[#4a0010] transition-colors disabled:opacity-50 w-fit"
+                    >
+                      {generatingId === s.id ? (
+                        <Loader2 size={10} className="animate-spin" />
+                      ) : (
+                        <Sparkles size={10} />
+                      )}
+                      {generatingId === s.id ? 'Generating...' : s.description ? 'Regenerate' : 'Generate with AI'}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

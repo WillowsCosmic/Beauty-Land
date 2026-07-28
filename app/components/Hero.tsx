@@ -2,10 +2,12 @@
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
+import Navbar from "./Navbar";
 
 export default function Hero() {
+
     const lettersRef = useRef<(HTMLSpanElement | null)[]>([]);
-  const word = "Beauty Land";
+  const word = "Beauty  Land";
 
   useEffect(() => {
     const letters = lettersRef.current.filter(Boolean);
@@ -55,6 +57,7 @@ export default function Hero() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.2 }}
     >
+          <Navbar />
       {/* Dark overlay */}
       <div className="absolute inset-0" style={{ backgroundColor: "#000000", opacity: 0.75 }} />
 
