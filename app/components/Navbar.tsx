@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -19,11 +18,10 @@ export default function Navbar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Link href="#services" className="hover:text-[#C0001A] transition">Services</Link>
-          <Link href="#gallery" className="hover:text-[#C0001A] transition">Gallery</Link>
-          <Link href="#contact" className="hover:text-[#C0001A] transition">Contact</Link>
+          <Link href="/#services" className="hover:text-[#C0001A] transition">Services</Link>
+          <Link href="/#gallery" className="hover:text-[#C0001A] transition">Gallery</Link>
+          <Link href="/#contact" className="hover:text-[#C0001A] transition">Contact</Link>
         </motion.div>
-
 
         {/* Hamburger Icon (mobile only) */}
         <button
@@ -58,9 +56,9 @@ export default function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Link href="/services" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Services</Link>
-            <Link href="#gallery" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Gallery</Link>
-            <Link href="#contact" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Contact</Link>
+            <Link href="/#services" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Services</Link>
+            <Link href="/#gallery" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Gallery</Link>
+            <Link href="/#contact" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Contact</Link>
           </motion.div>
         )}
       </AnimatePresence>
