@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
+import BookingModal from "../../components/bookModal";
 
 interface Service {
   id: string;
@@ -22,6 +23,7 @@ export default function ServiceDetailPage() {
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     async function fetchService() {
@@ -111,12 +113,10 @@ export default function ServiceDetailPage() {
         </p>
 
         <div className="mt-12 flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/contact"
-            className="inline-block text-center border border-[#C9A96E] text-[#C9A96E] px-8 py-3 text-xs uppercase tracking-widest hover:bg-[#C9A96E] hover:text-[#1a0005] transition-colors duration-300"
-          >
-            Book This Service
-          </Link>
+          <button onClick={() => setShowModal(true)} className="inline-block text-center border border-[#C9A96E] text-[#C9A96E] px-8 py-3 text-xs uppercase tracking-widest hover:bg-[#C9A96E] hover:text-[#1a0005] transition-colors duration-300">
+            Book this service
+          </button>
+          <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} />
           <Link
             href="/services"
             className="inline-block text-center text-[#f5e9dd]/60 px-8 py-3 text-xs uppercase tracking-widest hover:text-[#C9A96E] transition-colors duration-300"

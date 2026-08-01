@@ -1,7 +1,23 @@
 import { NextResponse } from 'next/server';
+import { adminAuth } from '@/lib/firebase-admin';
 
 export async function POST(req: Request) {
   try {
+    // Verify Firebase ID token so only logged-in admins can call this route
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split('Bearer ')[1] : null;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized: missing token' }, { status: 401 });
+    }
+
+    try {
+      await adminAuth.verifyIdToken(token);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      return NextResponse.json({ error: 'Unauthorized: invalid token' }, { status: 401 });
+    }
+
     const { name } = await req.json();
 
     if (!name) {

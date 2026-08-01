@@ -1,5 +1,6 @@
+import Footer from "./components/footer";
+import GallerySection from "./components/gallerySection";
 import Hero from "./components/Hero";
-import Navbar from "./components/Navbar";
 import ServicesSection from "./components/ServicesSection";
 
 export default function Home() {
@@ -7,6 +8,8 @@ export default function Home() {
     <main>
       <Hero />
       <ServicesSection />
+      <GallerySection />
+      <Footer />
     </main>
   );
 }

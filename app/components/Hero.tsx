@@ -1,8 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Navbar from "./Navbar";
+import BookingModal from "./bookModal";
 
 export default function Hero() {
 
@@ -44,6 +45,7 @@ export default function Hero() {
       ease: "power2.out",
     }, "-=0.2");
   }, []);
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <motion.section
@@ -129,9 +131,11 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
+          onClick={() => setShowModal(true)}
         >
           Book an Appointment
         </motion.button>
+        <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} />
       </div>
     </motion.section>
   );
