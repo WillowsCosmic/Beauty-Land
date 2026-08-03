@@ -5,9 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import Navbar from "./Navbar";
 import BookingModal from "./bookModal";
 
-export default function Hero() {
+const heroImages = [
+  "/hero-1.jpg",
+  "/hero-2.jpg",
+  "/hero-3.jpg",
+  "/hero-4.jpg",
+];
 
-    const lettersRef = useRef<(HTMLSpanElement | null)[]>([]);
+export default function Hero() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const lettersRef = useRef<(HTMLSpanElement | null)[]>([]);
   const word = "Beauty  Land";
 
   useEffect(() => {
@@ -28,45 +35,60 @@ export default function Hero() {
       stagger: 0.06,
       ease: "back.out(1.7)",
     })
-    // Shimmer sweep across all letters
-    .to(letters, {
-      color: "#C9A96E",
-      textShadow: "0 0 20px #C9A96E, 0 0 40px #C9A96E88",
-      duration: 0.08,
-      stagger: 0.05,
-      ease: "none",
-    }, "-=0.2")
-    // Fade shimmer back to white
-    .to(letters, {
-      color: "#ffffff",
-      textShadow: "0 0 0px transparent",
-      duration: 0.4,
-      stagger: 0.03,
-      ease: "power2.out",
-    }, "-=0.2");
+      // Shimmer sweep across all letters
+      .to(letters, {
+        color: "#C9A96E",
+        textShadow: "0 0 20px #C9A96E, 0 0 40px #C9A96E88",
+        duration: 0.08,
+        stagger: 0.05,
+        ease: "none",
+      }, "-=0.2")
+      // Fade shimmer back to white
+      .to(letters, {
+        color: "#ffffff",
+        textShadow: "0 0 0px transparent",
+        duration: 0.4,
+        stagger: 0.03,
+        ease: "power2.out",
+      }, "-=0.2");
   }, []);
+
+  // Slideshow effect - change image every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 7000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [showModal, setShowModal] = useState(false);
 
   return (
     <motion.section
-      className="min-h-screen flex items-center justify-start px-16 relative"
-      style={{
-        backgroundImage: "url('/hero.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
+      className="min-h-screen flex items-center justify-start px-16 relative overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.2 }}
     >
-          <Navbar />
+      {/* Slideshow background */}
+      <motion.div
+        className="absolute inset-0 -z-10 bg-cover bg-center"
+        style={{
+          backgroundImage: `url('${heroImages[currentImageIndex]}')`,
+        }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2.2, ease: "easeInOut" }}
+      />
+
+      <Navbar />
+
       {/* Dark overlay */}
-      <div className="absolute inset-0" style={{ backgroundColor: "#000000", opacity: 0.75 }} />
+      <div className="absolute inset-0 -z-10" style={{ backgroundColor: "#000000", opacity: 0.45 }} />
 
       {/* Content */}
-      <div className="relative z-10 text-white max-w-xl">
+      <div className="relative z-20 text-white max-w-xl">
         <motion.p
-          className="text-sm uppercase tracking-widest mb-3 font-medium "
+          className="text-sm uppercase tracking-widest mb-3 font-medium"
           style={{ color: "#C9A96E" }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

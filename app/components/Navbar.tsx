@@ -29,17 +29,17 @@ export default function Navbar() {
           onClick={() => setMenuOpen(!menuOpen)}
         >
           <motion.span
-            className="block w-6 h-0.5 bg-gray-800"
+            className="block w-6 h-0.5 bg-[#C9A96E]"
             animate={{ rotate: menuOpen ? 45 : 0, y: menuOpen ? 8 : 0 }}
             transition={{ duration: 0.3 }}
           />
           <motion.span
-            className="block w-6 h-0.5 bg-gray-800"
+            className="block w-6 h-0.5 bg-[#C9A96E]"
             animate={{ opacity: menuOpen ? 0 : 1 }}
             transition={{ duration: 0.3 }}
           />
           <motion.span
-            className="block w-6 h-0.5 bg-gray-800"
+            className="block w-6 h-0.5 bg-[#C9A96E]"
             animate={{ rotate: menuOpen ? -45 : 0, y: menuOpen ? -8 : 0 }}
             transition={{ duration: 0.3 }}
           />
@@ -50,15 +50,15 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            className="md:hidden bg-white px-6 pb-6 flex flex-col gap-4 text-sm font-medium text-gray-700 shadow-md"
+            className="md:hidden bg-black/40 backdrop-blur-md px-6 pb-6 flex flex-col gap-4 text-sm font-medium text-[#C9A96E]"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Link href="/#services" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Services</Link>
-            <Link href="/#gallery" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Gallery</Link>
-            <Link href="/#contact" onClick={() => setMenuOpen(false)} className="hover:text-[#C0001A] transition">Contact</Link>
+            <Link href="/#services" onClick={() => setMenuOpen(false)} className="hover:text-white transition">Services</Link>
+            <Link href="/#gallery" onClick={() => setMenuOpen(false)} className="hover:text-white transition">Gallery</Link>
+            <Link href="/#contact" onClick={() => setMenuOpen(false)} className="hover:text-white transition">Contact</Link>
           </motion.div>
         )}
       </AnimatePresence>

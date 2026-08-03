@@ -6,10 +6,18 @@ import ServicesSection from "./components/ServicesSection";
 export default function Home() {
   return (
     <main>
-      <Hero />
-      <ServicesSection />
-      <GallerySection />
-      <Footer />
+      <div id="hero">
+        <Hero />
+      </div>
+      <div id="services">
+        <ServicesSection />
+      </div>
+      <div id="gallery">
+        <GallerySection />
+      </div>
+      <div id="contact">
+        <Footer />
+      </div>
     </main>
   );
 }

@@ -33,15 +33,13 @@ export default function GallerySection() {
     return () => unsub();
   }, []);
 
-  // Scroll progress across the pinned (sticky) section — no GSAP pin-spacer,
-  // so there's no risk of a mismatched scroll-distance / dead white gap.
+  // Scroll progress across the pinned (sticky) section
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
 
-  // Smooth the raw scroll progress a touch so the curtains feel weighted
-  // rather than snapping 1:1 with the scrollbar.
+  // Smooth the raw scroll progress
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 120,
     damping: 24,
@@ -59,15 +57,13 @@ export default function GallerySection() {
   // Grid reveals after curtains are mostly open (0.45 -> 0.85)
   const gridOpacity = useTransform(smoothProgress, [0.45, 0.7], [0, 1]);
   const gridScale = useTransform(smoothProgress, [0.45, 0.7], [0.9, 1]);
-  const gridY = useTransform(smoothProgress, [0.45, 0.7], [40, 0]);
 
   // Button fades in near the very end
   const buttonOpacity = useTransform(smoothProgress, [0.8, 1], [0, 1]);
 
   return (
-    <section ref={containerRef} className="relative w-full h-[250vh]">
-      {/* Sticky viewport — stays pinned to the screen for the scroll duration,
-          no separate spacer element to fall out of sync with. */}
+    <section ref={containerRef} className="relative w-full h-[350vh]">
+      {/* Sticky viewport */}
       <div
         className="sticky top-0 w-full h-screen overflow-hidden"
         style={{
@@ -76,7 +72,7 @@ export default function GallerySection() {
           backgroundPosition: "center",
         }}
       >
-        {/* Cream overlay so photos/text stay legible over the floral bg */}
+        {/* Cream overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#faf6f0]/90 via-[#f5ede3]/88 to-[#faf6f0]/92" />
 
         {/* Heading, visible before curtains open */}
@@ -104,9 +100,9 @@ export default function GallerySection() {
         {/* Photo grid, revealed once curtains part */}
         <motion.div
           style={{ opacity: gridOpacity }}
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-start pt-12 px-6"
         >
-          {/* Persistent title, stays visible after curtains open */}
+          {/* Persistent title */}
           <div className="text-center mb-6">
             <span className="text-[#a8763f]/70 text-xs tracking-[0.3em] block mb-2">
               03
@@ -124,10 +120,10 @@ export default function GallerySection() {
             <p className="text-[#4a0010]/40 text-sm">Gallery coming soon</p>
           ) : (
             <motion.div
-              style={{ scale: gridScale, y: gridY }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl w-full"
+              style={{ scale: gridScale }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-5xl w-full"
             >
-              {photos.slice(0, 8).map((photo, i) => (
+              {photos.slice(0, 4).map((photo, i) => (
                 <div
                   key={photo.id}
                   className="gallery-card relative aspect-[3/4] rounded-lg overflow-hidden border border-[#C9A96E]/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
@@ -148,10 +144,10 @@ export default function GallerySection() {
           )}
         </motion.div>
 
-        {/* Explore button, fades in near the end of the scroll sequence */}
+        {/* Explore button */}
         <motion.div
           style={{ opacity: buttonOpacity }}
-          className="absolute bottom-8 left-0 w-full z-20 flex justify-center"
+          className="absolute bottom-32 left-0 w-full z-20 flex justify-center"
         >
           <Link
             href="/gallery"

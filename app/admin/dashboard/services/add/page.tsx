@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { ImagePlus, Loader2, Sparkles } from 'lucide-react';
 import Image from 'next/image';
@@ -41,11 +41,22 @@ export default function AddServicePage() {
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
 
-      // 2. Generate description via Gemini
+      // 2. Get Firebase ID token
+      setStatus('Authenticating...');
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('You must be logged in to add services');
+      }
+      const token = await user.getIdToken();
+
+      // 3. Generate description via Gemini
       setStatus('Generating description with AI ✨');
       const descRes = await fetch('/api/generate-description', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ name: name.trim() }),
       });
       const descData = await descRes.json();
@@ -55,7 +66,7 @@ export default function AddServicePage() {
       }
       const description = descData.description || '';
 
-      // 3. Save to Firestore (with description)
+      // 4. Save to Firestore (with description)
       setStatus('Saving service...');
       await addDoc(collection(db, 'services'), {
         name: name.trim(),
