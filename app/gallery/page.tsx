@@ -111,7 +111,7 @@ export default function GalleryPage() {
       {/* Masonry Grid */}
       {!loading && photos.length > 0 && (
         <div className="px-6 md:px-12 py-16 max-w-7xl mx-auto">
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 [&>*]:mb-4">
+          <div className="columns-2 md:columns-4 lg:columns-5 gap-4 [&>*]:mb-4">
             {photos.map((photo, idx) => (
               <button
                 key={photo.id}
