@@ -70,14 +70,14 @@ export default function Footer() {
 
                     <div className="flex items-center gap-3 mt-5">
                         <a
-                            href="#"
+                            href="https://www.instagram.com/angel_860319?igsh=cDIwd2VqODVkbmI="
                             aria-label="Instagram"
                             className="w-8 h-8 flex items-center justify-center rounded-full border border-[#C9A96E]/30 text-[#C9A96E] hover:bg-[#C9A96E]/10 transition"
                         >
                             <FaInstagram size={15} />
                         </a>
                         <a
-                            href="#"
+                            href="https://www.facebook.com/share/1BY7YYNdMk/"
                             aria-label="Facebook"
                             className="w-8 h-8 flex items-center justify-center rounded-full border border-[#C9A96E]/30 text-[#C9A96E] hover:bg-[#C9A96E]/10 transition"
                         >
