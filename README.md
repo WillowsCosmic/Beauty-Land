@@ -1,6 +1,6 @@
 # Beauty Land — Luxury Salon Website
 
-A modern, high-fashion salon website built with **Next.js**, **Framer Motion**, **Firebase**, and **Cloudinary**. Features a responsive design with real-time gallery management, automated service descriptions, and integrated booking system.
+A modern, high-fashion salon website built with **Next.js**, **Framer Motion**, **Firebase**, and **Cloudinary**. Features a responsive design with real-time gallery management and automated service descriptions
 
 ---
 
